@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SMSController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +15,22 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+//Login and register API's, not authenticated
+Route::group(['prefix' => 'auth'], function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+//Secure API's need auth token
+Route::group(['middleware' => 'auth:sanctum'], function () {
+    //Logout API
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+    //Send SMS API's
+    Route::group(['prefix' => 'sms'], function() {
+        Route::post('single', [SMSController::class, 'sendSingleSMS']);
+        Route::post('multiple', [SMSController::class, 'sendMultipleSMS']);
+        Route::get('/', [SMSController::class, 'index']);
+        Route::get('/{id}', [SMSController::class, 'show']);
+    });
 });
